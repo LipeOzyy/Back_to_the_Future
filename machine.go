@@ -558,6 +558,10 @@ func probeURL(client *http.Client, rawURL string, timeout int) probeResult {
 }
 
 func probeURLsParallel(client *http.Client, urls []string, maxWorkers int, delay time.Duration) []probeResult {
+	if maxWorkers <= 0 {
+		maxWorkers = 1
+	}
+
 	jobs := make(chan string)
 	results := make(chan probeResult)
 	var wg sync.WaitGroup
@@ -581,6 +585,9 @@ func probeURLsParallel(client *http.Client, urls []string, maxWorkers int, delay
 			jobs <- rawURL
 		}
 		close(jobs)
+	}()
+
+	go func() {
 		wg.Wait()
 		close(results)
 	}()
